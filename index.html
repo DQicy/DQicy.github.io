@@ -43,7 +43,7 @@
 <div class="intrude-less">
 	<header id="header" class="inner">
 		<a href="/" class="profilepic">
-			<img src="https://github.com/DQicy/CSS-/blob/master/81595768078_.pic.jpg" class="js-avatar">
+			<img src="/Users/apple/blog/public/DQicy.jpg" class="js-avatar">
 		</a>
 		<hgroup>
 		  <h1 class="header-author"><a href="/">DQicy</a></h1>
@@ -107,7 +107,7 @@
 	<div class="intrude-less">
 		<header id="header" class="inner">
 			<div class="profilepic">
-				<img src="https://github.com/DQicy/CSS-/blob/master/81595768078_.pic.jpg" class="js-avatar">
+				<img src="/Users/apple/blog/public/DQicy.jpg" class="js-avatar">
 			</div>
 			<hgroup>
 			  <h1 class="header-author js-header-author">DQicy</h1>
@@ -163,6 +163,126 @@
           </div>
           <div id="js-content" class="content-ll">
             
+  
+    <article id="post-MySQL锁机制" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/07/27/MySQL%E9%94%81%E6%9C%BA%E5%88%B6/">MySQL锁机制</a>
+    </h1>
+  
+
+        
+        <a href="/2020/07/27/MySQL%E9%94%81%E6%9C%BA%E5%88%B6/" class="archive-article-date">
+  	<time datetime="2020-07-27T13:04:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-07-27</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>本文主要总结一下MySQl中常见的锁机制。</p>
+<p>MySQL的隔离级别:<br>1.读未提交 (read-uncommitted)<br>2.读已提交 (read-committed)<br>3.可重复读(mysql默认的隔离级别) (repeatable-read)<br>4.串行化 (serializable)</p>
+<p>查看数据库事务隔离级别的语句：<br>show variables like ‘tx_isolation’;<br>select @@tx_isolation;</p>
+<p>设置事务隔离级别的语句：<br>set tx_isolation = ‘read-committed’;</p>
+<p>注意：隔离级别是数据库级别的，存储引擎是表级别的，别搞混了！</p>
+<p>并发事务处理会带来哪些问题呢？</p>
+<p>(1) 更新丢失： 两个事务同时操作相同的数据，后提交的事务会覆盖先提交的事务的处理结果，<br>这种情况可以通过乐观锁来进行解决。</p>
+<p>那什么是乐观锁呢？有乐观锁就对应有悲观锁吧？别急，后面慢慢学。</p>
+<p>(2) 脏读： 事务A读取到了事务B已经修改但是尚未提交的数据，如果事务B回滚，则A读取的数据无效，不符合一致性。</p>
+<p>(3) 不可重复读： 事务A读取到了事务B已经提交的修改数据，不符合隔离性。</p>
+<p>(4) 幻读： 事务A读取到了事务B提交的新增数据，不符合隔离性。</p>
+<p>隔离级别与出现问题的关系：<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1gh5ug3b0ugj31ba0f4gy7.jpg" alt=""></p>
+<p>数据库隔离级别越高，并行化的效果越差！</p>
+<p>MySQL中的乐观锁与悲观锁：<br>它们的目的都是为了解决并发控制的问题。</p>
+<p>（1）乐观锁: 从应用系统的层面上做并发控制。<br>实现乐观锁常见的方式：版本号version<br>在数据表中增加版本号字段，每次对一条数据做更新之前，先查出该条数据的版本号，每次更新数据都会对版本号进行更新。在更新时，把之前查出的版本号跟库中数据的版本号进行比对，如果相同，则说明该条数据没有被修改过，执行更新。如果比对的结果是不一致的，则说明该条数据已经被其他人修改过了，则不更新，客户端进行相应的操作提醒。</p>
+<p> (2) 悲观锁：从数据库层面上做并发控制,大体可分为S锁和X锁</p>
+<p>共享锁（S锁），实现方式是在sql后加LOCK IN SHARE MODE，比如SELECT … LOCK IN SHARE MODE，即在符合条件的rows上都加了共享锁，这样的话，其他session可以读取这些记录，也可以继续添加S锁，但是无法修改这些记录直到你这个加锁的session执行完成(否则直接锁等待超时)。<br>排它锁（X锁），实现方式是在sql后加FOR UPDATE，比如SELECT … FOR UPDATE ，即在符合条件的rows上都加了排它锁，其他session也就无法在这些记录上添加任何的S锁或X锁。如果不存在一致性非锁定读的话，那么其他session是无法读取和修改这些记录的，但是innodb有非锁定读(快照读并不需要加锁)，for update之后并不会阻塞其他session的快照读取操作，除了select …lock in share mode和select … for update这种显示加锁的查询操作。</p>
+<p>通过对比，发现for update的加锁方式无非是比lock in share mode的方式多阻塞了select…lock in share mode的查询方式，并不会阻塞快照读</p>
+<p>知识点： 快照读是不上锁的！！ （即： 单独的select语句不上锁）</p>
+<p>各自的适用场景：<br>乐观锁用于读多写少，悲观锁用于读好写多。</p>
+<p>详细解释：<br>乐观锁适用于写比较少的情况下（多读场景），即冲突真的很少发生的时候，这样可以省去了锁的开销，加大了系统的整个吞吐量。但如果是多写的情况，一般会经常产生冲突，这就会导致上层应用会不断的进行retry，这样反倒是降低了性能，所以一般多写的场景下用悲观锁就比较合适。</p>
+<p>问题： MySQL中两种存储引擎都是什么？支持行锁还是表锁？</p>
+<p>答：MySQL中有innoDB和Myisam两种引擎。<br>区别如下：<br>1.索引类型不同： innodb聚簇索引，myisam非聚簇索引<br>2.前者支持事务，后者不支持<br>3.二者均支持表锁，但前者支持行锁，后者不支持<br>4.前者支持外键，后者不支持外键<br>5.二者均支持全文索引<br>6.前者适用于大量insert,update,delete操作，后者适用于大量select操作</p>
+<p>问题：行锁相对于表锁有哪些特点》</p>
+<p>答：<br>1.开销大<br>2.加锁慢<br>3.会出现死锁<br>4.锁定粒度小<br>5.并发度高<br>6.发生锁冲突的概率最低</p>
+<p>问题：mysql中一致性非锁定读和一致性锁定读分别是什么？</p>
+<p>答：这个主要针对于innodb中实现了两种标准的行级锁。</p>
+<p>简要概括： (1)非锁定读： 就是快照读<br>（2）锁定读 ： lock in share mode / for update</p>
+<p>一致性非锁定读讲的是一条记录被加了X锁，其他事务仍然可以读而不被阻塞，是通过innodb的行多版本实现的，行多版本并不是实际存储多个版本记录而是通过undo实现。一致性锁定读是可以通过SELECT语句显式地给一条记录加X锁从而保证特定应用场景下的数据一致性。</p>
+<p>问题：innodb中有几种锁呀？ 分别讲一下。</p>
+<p>答：七种。<br>1.共享锁（Share Locks，记为S锁，读取数据时加S锁）<br>2.排他锁（Exclusive Locks，记为X锁，修改数据时加X锁）</p>
+<p>规则：<br>共享锁之间不互斥，简记为：读读可以并行<br>排他锁与任何锁互斥，简记为：写读，写写不可以并行</p>
+<p>3.意向锁(Intention Locks)<br>　　InnoDB为了支持多粒度锁机制(multiple granularity locking)，即允许行级锁与表级锁共存，而引入了意向锁(intention locks)。意向锁是指，未来的某个时刻，事务可能要加共享/排它锁了，先提前声明一个意向。</p>
+<p>意向锁是一个表级别的锁(table-level locking)；<br>意向锁又分为：<br>意向共享锁(intention shared lock, IS)，它预示着，事务有意向对表中的某些行加共享S锁；<br>意向排它锁(intention exclusive lock, IX)，它预示着，事务有意向对表中的某些行加排它X锁；</p>
+<p>加锁的语法为：<br>select … lock in share mode;　　要设置IS锁；<br>select … for update;　　　　　　 要设置IX锁；</p>
+<p>意向锁之间的兼容关系：都兼容<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1gh5v8z94kjj30ga080aa9.jpg" alt=""></p>
+<p>意向锁与S/X锁之间的兼容关系：<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1gh5va24kgbj30g407wweo.jpg" alt=""></p>
+<p>4.自增锁(Auto-inc Locks)<br>自增锁是一种特殊的表级别锁（table-level lock），专门针对事务插入AUTO_INCREMENT类型的列。最简单的情况，如果一个事务正在往表中插入记录，所有其他事务的插入必须等待，以便第一个事务插入的行，是连续的主键值。</p>
+<p>5.记录锁(Record Locks)<br>锁住某一行记录。</p>
+<p>6.间隙锁（Gap Locks）<br>间隙锁，它封锁索引记录中的间隔，或者第一条索引记录之前的范围，又或者最后一条索引记录之后的范围。<br>间隙锁的主要目的，就是为了防止其他事务在间隔中插入数据。如果把事务的隔离级别降级为读提交(Read Committed, RC)，间隙锁则会自动失效。</p>
+<p>7.临键锁(Next-key Locks)<br>　临键锁，是记录锁与间隙锁的组合，它的封锁范围，既包含索引记录，又包含索引区间。<br>　默认情况下，innodb使用next-key locks来锁定记录。但当查询的索引含有唯一属性的时候，Next-Key Lock 会进行优化，将其降级为Record Lock，即仅锁住索引本身，不是范围。<br>如果把事务的隔离级别降级为RC，临键锁则也会失效。</p>
+<p>总结：<br>　以上总结的7种锁，可以按两种方式来区分：<br>　1. 按锁的互斥程度来划分，可以分为共享、排他锁；<br>  共享锁(S锁、IS锁)，可以提高读读并发；<br>  为了保证数据强一致，InnoDB使用强互斥锁(X锁、IX锁)，保证同一行记录修改与删除的串行性；<br>　2. 按锁的粒度来划分，可以分为：<br>  表锁：意向锁(IS锁、IX锁)、自增锁；<br>  行锁：记录锁、间隙锁、临键锁；</p>
+<p>重点：MySQL在RR隔离级别下是如何避免幻读的？</p>
+<p>答：通过Next-Key Lock.<br>这个问题比较复杂，先得了解下innodb的加锁机制：</p>
+<p>默认情况下，InnoDB工作在可重复读隔离级别下，并且会以Next-Key Lock的方式对数据行进行加锁，这样可以有效防止幻读的发生。Next-Key Lock是行锁和间隙锁的组合，当InnoDB扫描索引记录的时候，会首先对索引记录加上行锁（Record Lock），再对索引记录两边的间隙加上间隙锁（Gap Lock）。加上间隙锁之后，其他事务就不能在这个间隙修改或者插入记录。</p>
+<p>(1)如果更新条件没有走索引，此时会进行全表扫描，扫表的时候，要阻止其他任何的更新操作，所以上升为表锁。<br>(2)如果更新条件为索引字段，但是并非唯一索引（包括主键索引）, 那么此时更新会使用Next-Key Lock。<br>(3)如果更新条件为唯一索引，则使用Record Lock（记录锁）。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文主要总结一下MySQl中常见的锁机制，接下来会讲一下MVCC机制和索引相关内容，尽情期待。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">MySQL</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/07/27/MySQL%E9%94%81%E6%9C%BA%E5%88%B6/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
   
     <article id="post-MySQL事务底层实现原理（1）" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
