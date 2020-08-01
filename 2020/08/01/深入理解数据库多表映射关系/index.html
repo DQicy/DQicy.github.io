@@ -6,15 +6,24 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://yoursite.com">
-  <title>Tag: MySQL | DQicy的技术博客</title>
+  <title>深入理解数据库多表映射关系 | DQicy的技术博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="DQicy的技术博客">
-<meta property="og:url" content="http://yoursite.com/tags/MySQL/index.html">
+  <meta name="description" content="写这篇文章的起因是项目中表与表之间的关系有所变更，于是想总结一下避免下次踩坑。 先来了解一下数据库中的表的关联关系以及设计原则：  一对一映射关系一个人对应一张身份证，一张身份证对应一个人  一对一关系是最好理解的一种关系，在数据库建表的时候可以将人表的主键放置与身份证表里面，也可以将身份证表的主键放置于人表里面  一对多映射关系一个班级拥有多个学生，一个学生只能够属于某个班级班级是1端，学生是多">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入理解数据库多表映射关系">
+<meta property="og:url" content="http://yoursite.com/2020/08/01/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%9A%E8%A1%A8%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB/index.html">
 <meta property="og:site_name" content="DQicy的技术博客">
+<meta property="og:description" content="写这篇文章的起因是项目中表与表之间的关系有所变更，于是想总结一下避免下次踩坑。 先来了解一下数据库中的表的关联关系以及设计原则：  一对一映射关系一个人对应一张身份证，一张身份证对应一个人  一对一关系是最好理解的一种关系，在数据库建表的时候可以将人表的主键放置与身份证表里面，也可以将身份证表的主键放置于人表里面  一对多映射关系一个班级拥有多个学生，一个学生只能够属于某个班级班级是1端，学生是多">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ghb6onras7j31ee09e0tw.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ghb6qg7rvsj31by08qt9x.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ghb6r6o1q2j31om0oitcr.jpg">
+<meta property="article:published_time" content="2020-08-01T04:04:00.000Z">
+<meta property="article:modified_time" content="2020-08-01T04:42:13.000Z">
 <meta property="article:author" content="DQicy">
+<meta property="article:tag" content="MySQL">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/007S8ZIlly1ghb6onras7j31ee09e0tw.jpg">
   
     <link rel="alternative" href="/atom.xml" title="DQicy的技术博客" type="application/atom+xml">
   
@@ -162,36 +171,91 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
+            <article id="post-深入理解数据库多表映射关系" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
   
+    <h1 class="article-title" itemprop="name">
+      深入理解数据库多表映射关系
+    </h1>
   
-    
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2020" class="archive-year">2020</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2020/08/01/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%9A%E8%A1%A8%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB/" class="archive-article-date">
+
+        
+        <a href="/2020/08/01/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%9A%E8%A1%A8%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB/" class="archive-article-date">
   	<time datetime="2020-08-01T04:04:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-08-01</time>
 </a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/08/01/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%9A%E8%A1%A8%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB/">深入理解数据库多表映射关系</a>
-    </h1>
-  
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>写这篇文章的起因是项目中表与表之间的关系有所变更，于是想总结一下避免下次踩坑。</p>
+<p>先来了解一下数据库中的表的关联关系以及设计原则：</p>
+<ol>
+<li>一对一映射关系<br>一个人对应一张身份证，一张身份证对应一个人<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghb6onras7j31ee09e0tw.jpg" alt=""></li>
+</ol>
+<p>一对一关系是最好理解的一种关系，在数据库建表的时候可以将人表的主键放置与身份证表里面，也可以将身份证表的主键放置于人表里面</p>
+<ol start="2">
+<li><p>一对多映射关系<br>一个班级拥有多个学生，一个学生只能够属于某个班级<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghb6qg7rvsj31by08qt9x.jpg" alt=""><br>班级是1端，学生是多端，结合面向对象的思想，1端是父亲，多端是儿子，所以多端具有1端的属性，也就是说多端里面应该放置1端的主键，那么学生表里面应该放置班级表里面的主键</p>
+</li>
+<li><p>多对多映射关系<br>一个学生可以选修多门课程，一个课程可以被多个学生选修<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghb6r6o1q2j31om0oitcr.jpg" alt=""><br>对于多对多关系，需要转换成1对多关系，那么就需要一张中间表来转换，这张中间表里面需要存放学生表里面的主键和课程表里面的主键，此时学生与中间表示1对多关系，课程与中间表是1对多关系，学生与课程是多对多关系</p>
+<p>总结：多对多映射的核心关系是转化为一对多的关系！！通过中间表来维护！！</p>
+</li>
+</ol>
+<p>了解完这些前置知识之后，我们来学习一下JPA中表关系的处理。<br>主要是三个注解，依次讲解一下：</p>
+<ol>
+<li>@OneToOne<br>代表一对一的关系<br>例如person和address：在Person中对应到数据库里面就有一个指向Address的外键。<br>现假设有Person表和Address表，是一对一的关系，在Person中有一个指向Address表主键的字段addressID，所以主控方一定是Person，所谓主控方就是能改变关联关系的一方，Person只要改变addressID就改变了关联关系，所以Person是主控方，所以@JoinColumn写在Person类中</li>
+</ol>
+<p>代码：<br>@OneToOne(cascade=CascadeType.ALL,optional=true) @JoinColumn(name=”addressID”)//注释本表中指向另一个表的外键。<br> public Address getAddress() {<br>         return address;<br> }</p>
+<p> 我们也可以不写@JoinColumn，Hibernate会自动在Person表生成关联字段，名称是被控方类名_被控方主键，如address_id</p>
+<p>如果两张表是以主键关联的，比如Person表主键是id，Address表主键是address_id，则运用如下注释：</p>
+<p>代码：<br>@OneToOne(cascade={CascadeType.ALL})<br>@PrimaryKeyJoinColumn(name = “id”, referencedColumnName=”address_id”)<br>public Address getAddress( ) {<br>      return homeAddress;<br>}</p>
+<ol start="2">
+<li>@OneToMany<br>代表一对多的单向关系<br>假如现在有Person表和Country表，那么一定是Person表中有country_id字段<br>由于我们是一对多的关系，所以站在一的角度，也就是Country的角度，在Country类中加入@JoinColumn：</li>
+</ol>
+<p>代码：<br>@OneToMany(cascade=CascadeType.ALL)<br>@JoinColumn(name=”country_id”)//注释的是另一个表指向本表的外键。<br>public List<Person> getPersons() {<br>    return persons;<br>}</p>
+<p>在一对多单向关系中，多的一方（Person）没有注解，一的一方（Country）有注解，如果一的一方不加@JoinColumn指定外键字段的话，Hibernate会自动生成一张中间表Country_PERSON来对Person和Country进行绑定。</p>
+<p>3.@ManyToOne<br>还是沿用一对多单向的例子，只是反过来，将Country中的注解去掉，挪到Person类中：<br>@ManyToOne<br>@JoinColumn(name=”country_id”)<br>public Country getCountry() {<br>    return country;<br>}</p>
+<p>与一对多单向不同的是，此时若不用@JoinColumn指定外键字段的话，不会生成中间表，而是在Person表中生成一列指向Country的外键。<br>如果记不清这类关系的话，最好自己把表都设计好，通过注解将关系全部指定，不要让Hibernate代劳。使用中间表关联的注解：<br>@JoinTable(name = “Person_Country”,<br>joinColumns = {@JoinColumn(name = “person_id”)},<br>inverseJoinColumns = {@JoinColumn(name = “country_id”)})</p>
+<p>joinColumns指定中间表中关联自己ID的字段，inverseJoinColumns表示中间表中关联对方ID的字段，在Country类中使用这个注解把它们对调一下即可。</p>
+<p>4.一对多双向<br>单向关系的缺点还是比较明显的，比如一对多单向，多的那一方没有任何关于另一方的信息，如果我们通过person_id取得一个单独的Person对象，我们没办法知道它属于哪个Country，因为Person类中没有Country对象，多对一单向则是反之。所以正常使用时，一对多双向是最常用的，双方都有彼此的信息。单向变双向，只需在单向的基础上，在Person类中加入多对一的注解：</p>
+<p>代码：<br>@ManyToOne(cascade = CascadeType.ALL, optional = false)<br>@JoinColumn(name=”country_id”)<br>private Country country;</p>
+<p>5.@ManyToMany<br>多对多的关系（单向）都是用中间表来维护的，假设现在有Person表，Project表，Person_Project表，Person类中的注解：</p>
+<p>代码：<br>@ManyToMany(cascade = CascadeType.ALL)<br>@JoinTable(name = “Person_Project”,<br>joinColumns = {@JoinColumn(name = “person_id”)},<br>inverseJoinColumns = {@JoinColumn(name = “project_id”)})<br>public List<Project> getProjects() {<br>    return project;<br>}</p>
+<p>双向关系中的mappedBy属性：</p>
+<p>参考链接：<br><a href="https://www.cnblogs.com/mingforyou/p/4615969.html" target="_blank" rel="noopener">https://www.cnblogs.com/mingforyou/p/4615969.html</a><br><a href="https://www.cnblogs.com/jpfss/p/11059629.html" target="_blank" rel="noopener">https://www.cnblogs.com/jpfss/p/11059629.html</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在单向关系中没有mappedBy,主控方相当于拥有指向另一方的外键的一方。<br>1.一对一和多对一的@JoinColumn注解的都是在“主控方”，都是本表指向外表的外键名称。<br>2.一对多的@JoinColumn注解在“被控方”，即一的一方，指的是外表中指向本表的外键名称。<br>3.多对多中，joinColumns写的都是本表在中间表的外键名称，<br>  inverseJoinColumns写的是另一个表在中间表的外键名称。</p>
 
-        <div class="article-info info-on-right">
-          
+      
+
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>谢谢你请我吃糖果<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
+        </div>
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
@@ -203,133 +267,106 @@
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://yoursite.com/2020/08/01/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%9A%E8%A1%A8%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2020/07/29/MySQL%E7%B4%A2%E5%BC%95%E5%A4%A7%E6%8F%AD%E7%A7%98/" class="archive-article-date">
-  	<time datetime="2020-07-29T14:04:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-07-29</time>
-</a>
+<nav id="article-nav">
+  
+  
+    <a href="/2020/07/29/MySQL%E7%B4%A2%E5%BC%95%E5%A4%A7%E6%8F%AD%E7%A7%98/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">MySQL索引大揭秘</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
+        
+        
+    </div>
+</aside>
+
+
+
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/07/29/MySQL%E7%B4%A2%E5%BC%95%E5%A4%A7%E6%8F%AD%E7%A7%98/">MySQL索引大揭秘</a>
-    </h1>
+  
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">MySQL</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2020/07/27/MySQL%E9%94%81%E6%9C%BA%E5%88%B6/" class="archive-article-date">
-  	<time datetime="2020-07-27T13:04:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-07-27</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/07/27/MySQL%E9%94%81%E6%9C%BA%E5%88%B6/">MySQL锁机制</a>
-    </h1>
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">MySQL</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2020/07/26/MySQL%E4%BA%8B%E5%8A%A1%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%EF%BC%881%EF%BC%89/" class="archive-article-date">
-  	<time datetime="2020-07-26T11:09:15.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-07-26</time>
-</a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2020/07/26/MySQL%E4%BA%8B%E5%8A%A1%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%EF%BC%881%EF%BC%89/">MySQL事务底层实现原理（1）</a>
-    </h1>
   
 
-        <div class="article-info info-on-right">
-          
-	<div class="article-tag tagcloud">
-		<i class="icon-price-tags icon"></i>
-		<ul class="article-tag-list">
-			 
-        		<li class="article-tag-list-item">
-        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">MySQL</a>
-        		</li>
-      		
-		</ul>
-	</div>
-
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
   
-  
-    </div></section>
-  
-
-    
 
 
           </div>
@@ -352,9 +389,9 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
+		isPost: true,
 		isArchive: false,
-		isTag: true,
+		isTag: false,
 		isCategory: false,
 		open_in_new: false,
 		toc_hide_index: true,
