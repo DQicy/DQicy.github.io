@@ -164,6 +164,116 @@
           <div id="js-content" class="content-ll">
             
   
+    <article id="post-Shiro安全框架学习" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+  <div class="article-inner">
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/08/02/Shiro%E5%AE%89%E5%85%A8%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/">Shiro安全框架学习</a>
+    </h1>
+  
+
+        
+        <a href="/2020/08/02/Shiro%E5%AE%89%E5%85%A8%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/" class="archive-article-date">
+  	<time datetime="2020-08-02T08:10:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-08-02</time>
+</a>
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>最近项目中要用到身份认证和授权的相关知识，leader说要学习一下shiro框架来做，上网查了查说是和AOP面向切面编程的思想差不多，那我<br>一想应该不难，结果。。看了三四天。。写个博客来记录一下学习历程。</p>
+<p>简而言之，Apache Shiro 是一个强大灵活的开源安全框架，可以完全处理身份验证、授权、加密和会话管理</p>
+<p>Apache Shiro是一个全面的、蕴含丰富功能的安全框架。下图为描述Shiro功能的框架图：<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghci4ycyb3j30dn0713z7.jpg" alt=""></p>
+<p>核心部分：<br>Authentication（认证）, Authorization（授权）, Session Management（会话管理）, Cryptography（加密）</p>
+<ol>
+<li>Authentication（认证）：用户身份识别，通常被称为用户“登录”</li>
+<li>Authorization（授权）：访问控制。比如某个用户是否具有某个操作的使用权限。</li>
+<li>Session Management（会话管理）：特定于用户的会话管理,甚至在非web 或 EJB 应用程序。</li>
+<li>Cryptography（加密）：在对数据源使用加密算法加密的同时，保证易于使用。</li>
+</ol>
+<p>shiro不一定要用在web应用中！！</p>
+<p>shiro的核心架构：<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghci73vwfij30be064q3k.jpg" alt=""></p>
+<p>在概念层，Shiro 架构包含三个主要的理念：Subject,SecurityManager和 Realm</p>
+<ol>
+<li>Subject：当前用户，Subject 可以是一个人，但也可以是第三方服务、守护进程帐户、时钟守护任务或者其它–当前和软件交互的任何事件。</li>
+<li>SecurityManager：管理所有Subject，SecurityManager 是 Shiro 架构的核心，配合内部安全组件共同组成安全伞。</li>
+<li>Realms：用于进行权限信息的验证，我们自己实现。Realm 本质上是一个特定的安全 DAO：它封装与数据源连接的细节，得到Shiro 所需的相关的数据。在配置 Shiro 的时候，你必须指定至少一个Realm 来实现认证（authentication）和/或授权（authorization）。</li>
+</ol>
+<p>我们需要实现Realms的Authentication 和 Authorization。其中 Authentication 是用来验证用户身份，Authorization 是授权访问控制，用于对用户进行的操作授权，证明该用户是否允许进行当前操作，如访问某个链接，某个资源文件等。</p>
+<p>下面来说一下Shiro做认证和授权的具体执行逻辑，这个逻辑非常复杂，我debug了好久，往下看吧(做好看不懂的准备)：</p>
+<p>(1) 认证：<br>先了解身份认证中的几个概念：<br>身份验证，即在应用中谁能证明他就是他本人。一般提供如他们的身份ID一些标识信息来表明他就是他本人，如提供身份证，用户名/密码来证明。<br>在shiro中，用户需要提供principals （身份）和credentials（证明）给shiro，从而应用能验证用户身份：<br>principals：身份，即主体的标识属性，可以是任何东西，如用户名、邮箱等，唯一即可。一个主体可以有多个principals，但只有一个Primary principals，一般是用户名/密码/手机号。<br>credentials：证明/凭证，即只有主体知道的安全值，如密码/数字证书等。<br>最常见的principals和credentials组合就是用户名/密码了。</p>
+<p>详细认证流程：<br>1、首先调用Subject.login(token)进行登录，其会自动委托给Security Manager，调用之前必须通过SecurityUtils. setSecurityManager()设置；<br>2、SecurityManager负责真正的身份验证逻辑；它会委托给Authenticator进行身份验证；<br>3、Authenticator才是真正的身份验证者，Shiro API中核心的身份认证入口点，此处可以自定义插入自己的实现；<br>4、Authenticator可能会委托给相应的AuthenticationStrategy进行多Realm身份验证，默认ModularRealmAuthenticator会调用AuthenticationStrategy进行多Realm身份验证；<br>5、Authenticator会把相应的token传入Realm，从Realm获取身份验证信息，如果没有返回/抛出异常表示身份验证失败了。此处可以配置多个Realm，将按照相应的顺序及策略进行访问。<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghcirily6xj30ew0riwjo.jpg" alt=""><br>可见，Shiro处理流程是一级一级的调用，主要是调用Authentication来进行验证，最后还是需要使用realm来进行身份验证</p>
+<p>(2) 授权：<br>授权，也叫访问控制，即在应用中控制谁能访问哪些资源（如访问页面/编辑数据/页面操作等）。</p>
+<p>授权流程：<br>和认证流程图差不多，不过这个调用的是Authrizer模块</p>
+<p>1、首先调用Subject.isPermitted<em>/hasRole*接口，其会委托给SecurityManager，而SecurityManager接着会委托给Authorizer；<br>2、Authorizer是真正的授权者，如果我们调用如isPermitted(“user:view”)，其首先会通过PermissionResolver把字符串转换成相应的Permission实例；<br>3、在进行授权之前，其会调用相应的Realm获取Subject相应的角色/权限用于匹配传入的角色/权限；<br>4、Authorizer会判断Realm的角色/权限是否和传入的匹配，如果有多个Realm，会委托给ModularRealmAuthorizer进行循环判断，如果匹配如isPermitted</em>/hasRole*会返回true，否则返回false表示授权失败。</p>
+<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghciu5igraj30gw0rcafq.jpg" alt=""></p>
+<p>realm模块可以自定义，但是必须实现如下两个方法：<br>(1) protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection)–&gt; 用于授权<br>(2)  protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken)–&gt; 用于认证</p>
+<p>再来说说shiro中的过滤器，这个算是shiro中非常重要的一个功能：<br>Apache Shiro 的核心通过 Filter 来实现，就好像 SpringMvc 通过 DispachServlet 来主控制一样。 既然是使用 Filter 一般也就能猜到，是通过URL规则来进行过滤和权限校验，所以我们需要定义一系列关于URL的规则和访问权限。</p>
+<p>Filter Chain定义说明：</p>
+<p>1、一个URL可以配置多个Filter，使用逗号分隔<br>2、当设置多个过滤器时，全部验证通过，才视为通过<br>3、部分过滤器可指定参数，如perms，roles</p>
+<p>Shiro内置的FilterChain如下：<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghciyr6nw9j31ds0u0afw.jpg" alt=""></p>
+<p>这些过滤器可以分为两组：<br>(1) 认证过滤器<br>anon:所有url都都可以匿名访问<br>authc: 需要认证才能进行访问<br>user:配置记住我或认证通过可以访问</p>
+<p>(2) 授权过滤器<br>perms（指定资源需要哪些权限才可以访问），Roles, ssl,rest, port</p>
+<p>下面举几个例子介绍一下（注意URLPattern写的是两颗星，这样才能实现任意层次的全匹配）</p>
+<p>/admin/<strong>=anon ：无参，表示可匿名访问<br>/admin/user/</strong>=authc ：无参，表示需要认证才能访问<br>/admin/user/<strong>=authcBasic ：无参，表示需要httpBasic认证才能访问<br>/admin/user/</strong>=ssl ：无参，表示需要安全的URL请求，协议为https<br>/home=user ：表示用户不一定需要通过认证，只要曾被 Shiro 记住过登录状态就可以正常发起 /home 请求<br>/edit=authc,perms[admin:edit]：表示用户必需已通过认证，并拥有 admin:edit 权限才可以正常发起 /edit 请求<br>/admin=authc,roles[admin] ：表示用户必需已通过认证，并拥有 admin 角色才可以正常发起 /admin 请求<br>/admin/user/<strong>=port[8081] ：当请求的URL端口不是8081时，跳转到schemal://serverName:8081?queryString<br>/admin/user/</strong>=rest[user] ：根据请求方式来识别，相当于 /admins/user/<strong>=perms[user:get]或perms[user:post] 等等<br>/admin</strong>=roles[“admin,guest”] ：允许多个参数（逗号分隔），此时要全部通过才算通过，相当于hasAllRoles()<br>/admin<em>*=perms[“user:add:</em>,user:del:*”]：允许多个参数（逗号分隔），此时要全部通过才算通过，相当于isPermitedAll()</p>
+<p>参考资料：<br><a href="https://www.jianshu.com/p/5c7c75de37a3" target="_blank" rel="noopener">https://www.jianshu.com/p/5c7c75de37a3</a><br><a href="https://www.cnblogs.com/wmyskxz/p/10229148.html" target="_blank" rel="noopener">https://www.cnblogs.com/wmyskxz/p/10229148.html</a><br><a href="https://www.cnblogs.com/wwqqnn123456/p/9485691.html" target="_blank" rel="noopener">https://www.cnblogs.com/wwqqnn123456/p/9485691.html</a><br><a href="https://blog.csdn.net/Emma_Joans/article/details/78212542" target="_blank" rel="noopener">https://blog.csdn.net/Emma_Joans/article/details/78212542</a><br><a href="https://blog.csdn.net/a3060858469/article/details/80727273?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param" target="_blank" rel="noopener">https://blog.csdn.net/a3060858469/article/details/80727273?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param</a><br><a href="https://www.jianshu.com/p/5c7c75de37a3" target="_blank" rel="noopener">https://www.jianshu.com/p/5c7c75de37a3</a><br><a href="https://blog.csdn.net/l_cl_java/article/details/80425396" target="_blank" rel="noopener">https://blog.csdn.net/l_cl_java/article/details/80425396</a><br><a href="https://blog.csdn.net/medelia/article/details/86692521" target="_blank" rel="noopener">https://blog.csdn.net/medelia/article/details/86692521</a><br><a href="https://blog.csdn.net/u012475575/article/details/82022745" target="_blank" rel="noopener">https://blog.csdn.net/u012475575/article/details/82022745</a></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>shiro新手使用还是较为复杂的，需要多去理解内部机制，多用。</p>
+
+      
+
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<i class="icon-price-tags icon"></i>
+		<ul class="article-tag-list">
+			 
+        		<li class="article-tag-list-item">
+        			<a href="javascript:void(0)" class="js-tag article-tag-list-link color1">Shiro</a>
+        		</li>
+      		
+		</ul>
+	</div>
+
+      
+
+      
+        <p class="article-more-link">
+          <a class="article-more-a" href="/2020/08/02/Shiro%E5%AE%89%E5%85%A8%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/">展开全文 >></a>
+        </p>
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+  </div>
+</article>
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
+        </div>
+        
+        
+    </div>
+</aside>
+
+
+
+
+  
     <article id="post-深入理解数据库多表映射关系" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -602,105 +712,6 @@
 
 
   
-    <article id="post-Shiro安全框架学习" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/07/26/Shiro%E5%AE%89%E5%85%A8%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/">Shiro安全框架学习</a>
-    </h1>
-  
-
-        
-        <a href="/2020/07/26/Shiro%E5%AE%89%E5%85%A8%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/" class="archive-article-date">
-  	<time datetime="2020-07-26T11:00:42.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2020-07-26</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>最近项目中要用到身份认证和授权的相关知识，leader说要学习一下shiro框架来做，上网查了查说是和AOP面向切面编程的思想差不多，那我<br>一想应该不难，结果。。看了三四天。。写个博客来记录一下学习历程。</p>
-<p>简而言之，Apache Shiro 是一个强大灵活的开源安全框架，可以完全处理身份验证、授权、加密和会话管理</p>
-<p>Apache Shiro是一个全面的、蕴含丰富功能的安全框架。下图为描述Shiro功能的框架图：<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghci4ycyb3j30dn0713z7.jpg" alt=""></p>
-<p>核心部分：<br>Authentication（认证）, Authorization（授权）, Session Management（会话管理）, Cryptography（加密）</p>
-<ol>
-<li>Authentication（认证）：用户身份识别，通常被称为用户“登录”</li>
-<li>Authorization（授权）：访问控制。比如某个用户是否具有某个操作的使用权限。</li>
-<li>Session Management（会话管理）：特定于用户的会话管理,甚至在非web 或 EJB 应用程序。</li>
-<li>Cryptography（加密）：在对数据源使用加密算法加密的同时，保证易于使用。</li>
-</ol>
-<p>shiro不一定要用在web应用中！！</p>
-<p>shiro的核心架构：<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghci73vwfij30be064q3k.jpg" alt=""></p>
-<p>在概念层，Shiro 架构包含三个主要的理念：Subject,SecurityManager和 Realm</p>
-<ol>
-<li>Subject：当前用户，Subject 可以是一个人，但也可以是第三方服务、守护进程帐户、时钟守护任务或者其它–当前和软件交互的任何事件。</li>
-<li>SecurityManager：管理所有Subject，SecurityManager 是 Shiro 架构的核心，配合内部安全组件共同组成安全伞。</li>
-<li>Realms：用于进行权限信息的验证，我们自己实现。Realm 本质上是一个特定的安全 DAO：它封装与数据源连接的细节，得到Shiro 所需的相关的数据。在配置 Shiro 的时候，你必须指定至少一个Realm 来实现认证（authentication）和/或授权（authorization）。</li>
-</ol>
-<p>我们需要实现Realms的Authentication 和 Authorization。其中 Authentication 是用来验证用户身份，Authorization 是授权访问控制，用于对用户进行的操作授权，证明该用户是否允许进行当前操作，如访问某个链接，某个资源文件等。</p>
-<p>下面来说一下Shiro做认证和授权的具体执行逻辑，这个逻辑非常复杂，我debug了好久，往下看吧(做好看不懂的准备)：</p>
-<p>(1) 认证：<br>先了解身份认证中的几个概念：<br>身份验证，即在应用中谁能证明他就是他本人。一般提供如他们的身份ID一些标识信息来表明他就是他本人，如提供身份证，用户名/密码来证明。<br>在shiro中，用户需要提供principals （身份）和credentials（证明）给shiro，从而应用能验证用户身份：<br>principals：身份，即主体的标识属性，可以是任何东西，如用户名、邮箱等，唯一即可。一个主体可以有多个principals，但只有一个Primary principals，一般是用户名/密码/手机号。<br>credentials：证明/凭证，即只有主体知道的安全值，如密码/数字证书等。<br>最常见的principals和credentials组合就是用户名/密码了。</p>
-<p>详细认证流程：<br>1、首先调用Subject.login(token)进行登录，其会自动委托给Security Manager，调用之前必须通过SecurityUtils. setSecurityManager()设置；<br>2、SecurityManager负责真正的身份验证逻辑；它会委托给Authenticator进行身份验证；<br>3、Authenticator才是真正的身份验证者，Shiro API中核心的身份认证入口点，此处可以自定义插入自己的实现；<br>4、Authenticator可能会委托给相应的AuthenticationStrategy进行多Realm身份验证，默认ModularRealmAuthenticator会调用AuthenticationStrategy进行多Realm身份验证；<br>5、Authenticator会把相应的token传入Realm，从Realm获取身份验证信息，如果没有返回/抛出异常表示身份验证失败了。此处可以配置多个Realm，将按照相应的顺序及策略进行访问。<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghcirily6xj30ew0riwjo.jpg" alt=""><br>可见，Shiro处理流程是一级一级的调用，主要是调用Authentication来进行验证，最后还是需要使用realm来进行身份验证</p>
-<p>(2) 授权：<br>授权，也叫访问控制，即在应用中控制谁能访问哪些资源（如访问页面/编辑数据/页面操作等）。</p>
-<p>授权流程：<br>和认证流程图差不多，不过这个调用的是Authrizer模块</p>
-<p>1、首先调用Subject.isPermitted<em>/hasRole*接口，其会委托给SecurityManager，而SecurityManager接着会委托给Authorizer；<br>2、Authorizer是真正的授权者，如果我们调用如isPermitted(“user:view”)，其首先会通过PermissionResolver把字符串转换成相应的Permission实例；<br>3、在进行授权之前，其会调用相应的Realm获取Subject相应的角色/权限用于匹配传入的角色/权限；<br>4、Authorizer会判断Realm的角色/权限是否和传入的匹配，如果有多个Realm，会委托给ModularRealmAuthorizer进行循环判断，如果匹配如isPermitted</em>/hasRole*会返回true，否则返回false表示授权失败。</p>
-<p><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghciu5igraj30gw0rcafq.jpg" alt=""></p>
-<p>realm模块可以自定义，但是必须实现如下两个方法：<br>(1) protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection)–&gt; 用于授权<br>(2)  protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken)–&gt; 用于认证</p>
-<p>再来说说shiro中的过滤器，这个算是shiro中非常重要的一个功能：<br>Apache Shiro 的核心通过 Filter 来实现，就好像 SpringMvc 通过 DispachServlet 来主控制一样。 既然是使用 Filter 一般也就能猜到，是通过URL规则来进行过滤和权限校验，所以我们需要定义一系列关于URL的规则和访问权限。</p>
-<p>Filter Chain定义说明：</p>
-<p>1、一个URL可以配置多个Filter，使用逗号分隔<br>2、当设置多个过滤器时，全部验证通过，才视为通过<br>3、部分过滤器可指定参数，如perms，roles</p>
-<p>Shiro内置的FilterChain如下：<br><img src="https://tva1.sinaimg.cn/large/007S8ZIlly1ghciyr6nw9j31ds0u0afw.jpg" alt=""></p>
-<p>这些过滤器可以分为两组：<br>(1) 认证过滤器<br>anon:所有url都都可以匿名访问<br>authc: 需要认证才能进行访问<br>user:配置记住我或认证通过可以访问</p>
-<p>(2) 授权过滤器<br>perms（指定资源需要哪些权限才可以访问），Roles, ssl,rest, port</p>
-<p>下面举几个例子介绍一下（注意URLPattern写的是两颗星，这样才能实现任意层次的全匹配）</p>
-<p>/admin/<strong>=anon ：无参，表示可匿名访问<br>/admin/user/</strong>=authc ：无参，表示需要认证才能访问<br>/admin/user/<strong>=authcBasic ：无参，表示需要httpBasic认证才能访问<br>/admin/user/</strong>=ssl ：无参，表示需要安全的URL请求，协议为https<br>/home=user ：表示用户不一定需要通过认证，只要曾被 Shiro 记住过登录状态就可以正常发起 /home 请求<br>/edit=authc,perms[admin:edit]：表示用户必需已通过认证，并拥有 admin:edit 权限才可以正常发起 /edit 请求<br>/admin=authc,roles[admin] ：表示用户必需已通过认证，并拥有 admin 角色才可以正常发起 /admin 请求<br>/admin/user/<strong>=port[8081] ：当请求的URL端口不是8081时，跳转到schemal://serverName:8081?queryString<br>/admin/user/</strong>=rest[user] ：根据请求方式来识别，相当于 /admins/user/<strong>=perms[user:get]或perms[user:post] 等等<br>/admin</strong>=roles[“admin,guest”] ：允许多个参数（逗号分隔），此时要全部通过才算通过，相当于hasAllRoles()<br>/admin<em>*=perms[“user:add:</em>,user:del:*”]：允许多个参数（逗号分隔），此时要全部通过才算通过，相当于isPermitedAll()</p>
-<p>参考资料：<br><a href="https://www.jianshu.com/p/5c7c75de37a3" target="_blank" rel="noopener">https://www.jianshu.com/p/5c7c75de37a3</a><br><a href="https://www.cnblogs.com/wmyskxz/p/10229148.html" target="_blank" rel="noopener">https://www.cnblogs.com/wmyskxz/p/10229148.html</a><br><a href="https://www.cnblogs.com/wwqqnn123456/p/9485691.html" target="_blank" rel="noopener">https://www.cnblogs.com/wwqqnn123456/p/9485691.html</a><br><a href="https://blog.csdn.net/Emma_Joans/article/details/78212542" target="_blank" rel="noopener">https://blog.csdn.net/Emma_Joans/article/details/78212542</a><br><a href="https://blog.csdn.net/a3060858469/article/details/80727273?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param" target="_blank" rel="noopener">https://blog.csdn.net/a3060858469/article/details/80727273?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param&amp;depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.channel_param</a><br><a href="https://www.jianshu.com/p/5c7c75de37a3" target="_blank" rel="noopener">https://www.jianshu.com/p/5c7c75de37a3</a><br><a href="https://blog.csdn.net/l_cl_java/article/details/80425396" target="_blank" rel="noopener">https://blog.csdn.net/l_cl_java/article/details/80425396</a><br><a href="https://blog.csdn.net/medelia/article/details/86692521" target="_blank" rel="noopener">https://blog.csdn.net/medelia/article/details/86692521</a><br><a href="https://blog.csdn.net/u012475575/article/details/82022745" target="_blank" rel="noopener">https://blog.csdn.net/u012475575/article/details/82022745</a></p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>shiro新手使用还是较为复杂的，需要多去理解内部机制，多用。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2020/07/26/Shiro%E5%AE%89%E5%85%A8%E6%A1%86%E6%9E%B6%E5%AD%A6%E4%B9%A0/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
     <article id="post-hello-world" class="article article-type-post  article-index" itemscope itemprop="blogPost">
   <div class="article-inner">
     
@@ -870,6 +881,10 @@ return o(i(t),arguments.length<2?void 0:u(arguments[1]))}})},function(t,n,r){var
              
               <li class="article-tag-list-item">
                 <a href="javascript:void(0)" class="js-tag color1">MySQL</a>
+              </li>
+             
+              <li class="article-tag-list-item">
+                <a href="javascript:void(0)" class="js-tag color1">Shiro</a>
               </li>
             
             <div class="clearfix"></div>
